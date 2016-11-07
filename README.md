@@ -5,7 +5,7 @@ and may change at any time.
 
 ## Build
 
-Download a binary or install from command line `go install` (Requires golang to be installed). Tested under golang 1.7.
+[Download a binary](https://github.com/timberslide/ts/releases) or install from command line `go install` (Requires golang to be installed). Tested under golang 1.7.
 
 ## Configuration
 
