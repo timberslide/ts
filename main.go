@@ -61,7 +61,11 @@ func newClient() (Client, error) {
 // send takes stdin and sends it to the topic
 func (c *Client) send(topic string) error {
 	fmt.Fprintf(os.Stderr, "ts: connecting...\n")
-	creds := credentials.NewClientTLSFromCert(nil, c.Host)
+	host, _, err := net.SplitHostPort(c.Host)
+	if err != nil {
+		return err
+	}
+	creds := credentials.NewClientTLSFromCert(nil, host)
 	conn, err := grpc.Dial(c.Host, grpc.WithTransportCredentials(creds), grpc.WithBlock())
 	if err != nil {
 		return err
