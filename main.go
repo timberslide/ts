@@ -7,10 +7,12 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"os/user"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 
 	"github.com/BurntSushi/toml"
@@ -59,7 +61,8 @@ func newClient() (Client, error) {
 // send takes stdin and sends it to the topic
 func (c *Client) send(topic string) error {
 	fmt.Fprintf(os.Stderr, "ts: connecting...\n")
-	conn, err := grpc.Dial(c.Host, grpc.WithInsecure(), grpc.WithBlock())
+	creds := credentials.NewClientTLSFromCert(nil, c.Host)
+	conn, err := grpc.Dial(c.Host, grpc.WithTransportCredentials(creds), grpc.WithBlock())
 	if err != nil {
 		return err
 	}
@@ -96,7 +99,12 @@ func (c *Client) send(topic string) error {
 
 // get receives the stream from the topic and writes it to stdout
 func (c *Client) get(topic string) error {
-	conn, err := grpc.Dial(c.Host, grpc.WithInsecure())
+	host, _, err := net.SplitHostPort(c.Host)
+	if err != nil {
+		return err
+	}
+	creds := credentials.NewClientTLSFromCert(nil, host)
+	conn, err := grpc.Dial(c.Host, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		return err
 	}
