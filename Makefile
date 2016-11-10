@@ -6,7 +6,7 @@ install:
 
 release:
 	go build
-	tar -zcvf ts.tar.gz ts
+	tar -zcvf ts-macos.tar.gz ts
 
 debian-release:
 	docker build -f Dockerfile.debian -t ts-debian .
