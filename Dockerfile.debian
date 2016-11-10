@@ -1,0 +1,18 @@
+FROM golang:1.7.3-wheezy
+
+RUN apt-get update && apt-get install -y curl unzip make git
+
+RUN cd /tmp && \
+    curl -LOk https://github.com/google/protobuf/releases/download/v3.0.0-beta-2/protoc-3.0.0-beta-2-linux-x86_64.zip && \
+    unzip protoc-3.0.0-beta-2-linux-x86_64.zip && \
+    cp protoc /usr/local/bin/protoc
+
+RUN go get -u google.golang.org/grpc
+RUN go get -u github.com/golang/protobuf/proto
+RUN go get -u github.com/golang/protobuf/protoc-gen-go
+
+RUN go get -u github.com/timberslide/gotimberslide; exit 0
+RUN cd /go/src/github.com/timberslide/gotimberslide && protoc --go_out=plugins=grpc:. *.proto
+
+ADD . /go/src/github.com/timberslide/ts
+RUN cd /go/src/github.com/timberslide/ts && go get && go build -o /ts
