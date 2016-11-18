@@ -14,3 +14,4 @@ debian-release:
 	docker cp ts-debian:/ts ts
 	chmod +x ts
 	tar -zcvf ts-linux-amd64.tar.gz ts
+	docker rm ts-debian
