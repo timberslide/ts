@@ -13,9 +13,17 @@ var (
 )
 
 const (
-	ErrConfig = iota // ErrConfig is returned if we have a proble with the config file
-	ErrUsage         // ErrUsage is returned if we exit because we displayed the usage
-	ErrServer        // ErrServer is returned for any error because of the server
+	// ErrConfig is returned if we have a proble with the config file
+	ErrConfig = iota
+
+	// ErrUsage is returned if we exit because we displayed the usage
+	ErrUsage
+
+	// ErrServer is returned for any error because of the server
+	ErrServer
+
+	// ErrSystem is returned when a problem with the user's system is encountered
+	ErrSystem
 )
 
 // usage is displayed if the user tries to do something invalid
@@ -44,26 +52,35 @@ func main() {
 
 	// Set up our command line flags
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
+	var quietFlag bool
+	sendCmd.BoolVar(&quietFlag, "q", false, "Do not display the stream to stdout")
 
 	getCmd := flag.NewFlagSet("get", flag.ExitOnError)
-	var all bool
-	getCmd.BoolVar(&all, "all", false, "Begin from the oldest message")
+	var allFlag bool
+	getCmd.BoolVar(&allFlag, "all", false, "Begin from the oldest message")
 
 	topic := os.Args[len(os.Args)-1]
 
 	switch os.Args[1] {
 	case "send":
 		sendCmd.Parse(os.Args[2:])
+		if quietFlag {
+			os.Stdout, err = os.Open("/dev/null")
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Could not redirect stdout to /dev/null")
+				os.Exit(ErrSystem)
+			}
+		}
 		err = client.Send(topic)
 	case "get":
 		getCmd.Parse(os.Args[2:])
 		position := ts.PositionNewest
-		if all {
+		if allFlag {
 			position = ts.PositionOldest
 		}
 		err = client.Get(topic, position)
 	default:
-		fmt.Fprintf(os.Stderr, "%s is not a valid command. Valid commands are `send` and `get`.\n", os.Args[1])
+		fmt.Fprintln(os.Stderr, os.Args[1], "is not a valid command. Valid commands are `send` and `get`.")
 		os.Exit(ErrUsage)
 	}
 	if err != nil {
