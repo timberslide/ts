@@ -12,9 +12,7 @@ RUN go get -u google.golang.org/grpc
 RUN go get -u github.com/golang/protobuf/proto
 RUN go get -u github.com/golang/protobuf/protoc-gen-go
 
-RUN go get -u github.com/timberslide/gotimberslide; exit 0
-
-RUN cd /go/src/github.com/timberslide/gotimberslide && protoc --go_out=plugins=grpc:. *.proto
-
 ADD . /go/src/github.com/timberslide/ts
+RUN go get -u github.com/timberslide/gotimberslide; exit 0
+RUN cd /go/src/github.com/timberslide/gotimberslide && protoc --go_out=plugins=grpc:. *.proto
 RUN cd /go/src/github.com/timberslide/ts && go get && go build -o /ts
