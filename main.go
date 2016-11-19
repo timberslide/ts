@@ -34,6 +34,14 @@ func usage() {
 	flag.PrintDefaults()
 }
 
+// Get displays all events to stdout
+func Get(client ts.Client, topic string, position int64) error {
+	for event := range client.Iter(topic, position) {
+		fmt.Println(event.Message)
+	}
+	return nil
+}
+
 func main() {
 	var err error
 
@@ -78,7 +86,7 @@ func main() {
 		if allFlag {
 			position = ts.PositionOldest
 		}
-		err = client.Get(topic, position)
+		err = Get(client, topic, position)
 	default:
 		fmt.Fprintln(os.Stderr, os.Args[1], "is not a valid command. Valid commands are `send` and `get`.")
 		os.Exit(ErrUsage)
