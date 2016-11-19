@@ -51,6 +51,12 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(ErrConfig)
 	}
+	err = client.Connect()
+	if err != nil {
+		return
+	}
+	defer client.Close()
+
 	flag.Usage = usage
 
 	if len(os.Args) < 3 {
