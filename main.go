@@ -38,7 +38,7 @@ func main() {
 	var err error
 
 	// Configure the Timberslide client
-	client, err := ts.NewClient(configFile)
+	client, err := ts.NewClientFromFile(configFile)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(ErrConfig)
