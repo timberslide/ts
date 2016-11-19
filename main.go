@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/timberslide/gotimberslide"
 )
@@ -32,6 +34,24 @@ func usage() {
 	fmt.Fprintf(os.Stderr, "%s <action> [options...] <topic>\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "Actions: send, get\n")
 	flag.PrintDefaults()
+}
+
+// SendStdin pipes stdin into Timberslide
+func SendStdin(client ts.Client, topic string) error {
+	var err error
+	ch := client.CreateChannel(topic)
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		message := scanner.Text()
+		ch <- message
+		fmt.Println(message)
+	}
+	if err = scanner.Err(); err != nil {
+		return err
+	}
+	time.Sleep(10 * time.Second)
+	// XXX how to close the channel out properly
+	return err
 }
 
 // Get displays all events to stdout
@@ -85,7 +105,7 @@ func main() {
 				os.Exit(ErrSystem)
 			}
 		}
-		err = client.Send(topic)
+		err = SendStdin(client, topic)
 	case "get":
 		getCmd.Parse(os.Args[2:])
 		position := ts.PositionNewest
