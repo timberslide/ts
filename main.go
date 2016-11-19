@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"os"
@@ -34,15 +35,45 @@ func usage() {
 	flag.PrintDefaults()
 }
 
+// SendStdin pipes stdin into Timberslide
+func SendStdin(client ts.Client, topic string) error {
+	var err error
+	ch, err := client.CreateChannel(topic)
+	if err != nil {
+		return err
+	}
+	defer ch.Close()
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		message := scanner.Text()
+		ch.Send(message)
+		fmt.Println(message)
+	}
+	if err = scanner.Err(); err != nil {
+		return err
+	}
+	fmt.Fprintln(os.Stderr, "Stream done, closing connection")
+	return err
+}
+
+// Get displays all events to stdout
+func Get(client ts.Client, topic string, position int64) error {
+	for event := range client.Iter(topic, position) {
+		fmt.Println(event.Message)
+	}
+	return nil
+}
+
 func main() {
 	var err error
 
 	// Configure the Timberslide client
-	client, err := ts.NewClient(configFile)
+	client, err := ts.NewClientFromFile(configFile)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(ErrConfig)
 	}
+
 	flag.Usage = usage
 
 	if len(os.Args) < 3 {
@@ -61,6 +92,14 @@ func main() {
 
 	topic := os.Args[len(os.Args)-1]
 
+	fmt.Fprintln(os.Stderr, "Connecting to Timberslide")
+	err = client.Connect()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(ErrServer)
+	}
+	defer client.Close()
+
 	switch os.Args[1] {
 	case "send":
 		sendCmd.Parse(os.Args[2:])
@@ -71,14 +110,14 @@ func main() {
 				os.Exit(ErrSystem)
 			}
 		}
-		err = client.Send(topic)
+		err = SendStdin(client, topic)
 	case "get":
 		getCmd.Parse(os.Args[2:])
 		position := ts.PositionNewest
 		if allFlag {
 			position = ts.PositionOldest
 		}
-		err = client.Get(topic, position)
+		err = Get(client, topic, position)
 	default:
 		fmt.Fprintln(os.Stderr, os.Args[1], "is not a valid command. Valid commands are `send` and `get`.")
 		os.Exit(ErrUsage)
