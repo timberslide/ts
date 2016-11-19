@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/timberslide/gotimberslide"
 )
@@ -39,18 +38,21 @@ func usage() {
 // SendStdin pipes stdin into Timberslide
 func SendStdin(client ts.Client, topic string) error {
 	var err error
-	ch := client.CreateChannel(topic)
+	ch, err := client.CreateChannel(topic)
+	if err != nil {
+		return err
+	}
+	defer ch.Close()
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		message := scanner.Text()
-		ch <- message
+		ch.Send(message)
 		fmt.Println(message)
 	}
 	if err = scanner.Err(); err != nil {
 		return err
 	}
-	time.Sleep(10 * time.Second)
-	// XXX how to close the channel out properly
+	fmt.Fprintln(os.Stderr, "Stream done, closing connection")
 	return err
 }
 
@@ -71,11 +73,6 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(ErrConfig)
 	}
-	err = client.Connect()
-	if err != nil {
-		return
-	}
-	defer client.Close()
 
 	flag.Usage = usage
 
@@ -94,6 +91,14 @@ func main() {
 	getCmd.BoolVar(&allFlag, "all", false, "Begin from the oldest message")
 
 	topic := os.Args[len(os.Args)-1]
+
+	fmt.Fprintln(os.Stderr, "Connecting to Timberslide")
+	err = client.Connect()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(ErrServer)
+	}
+	defer client.Close()
 
 	switch os.Args[1] {
 	case "send":
