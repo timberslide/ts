@@ -64,6 +64,18 @@ func Get(client ts.Client, topic string, position int64) error {
 	return nil
 }
 
+// List gets a list of topics and displays them to the user
+func List(client ts.Client) error {
+	topics, err := client.GetTopics()
+	if err != nil {
+		return err
+	}
+	for _, topic := range topics {
+		fmt.Println(topic.Name)
+	}
+	return nil
+}
+
 func main() {
 	var err error
 
@@ -76,7 +88,7 @@ func main() {
 
 	flag.Usage = usage
 
-	if len(os.Args) < 3 {
+	if len(os.Args) < 2 {
 		usage()
 		os.Exit(ErrUsage)
 	}
@@ -89,6 +101,8 @@ func main() {
 	getCmd := flag.NewFlagSet("get", flag.ExitOnError)
 	var allFlag bool
 	getCmd.BoolVar(&allFlag, "all", false, "Begin from the oldest message")
+
+	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
 
 	topic := os.Args[len(os.Args)-1]
 
@@ -118,6 +132,9 @@ func main() {
 			position = ts.PositionOldest
 		}
 		err = Get(client, topic, position)
+	case "list":
+		listCmd.Parse(os.Args[2:])
+		err = List(client)
 	default:
 		fmt.Fprintln(os.Stderr, os.Args[1], "is not a valid command. Valid commands are `send` and `get`.")
 		os.Exit(ErrUsage)
