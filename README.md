@@ -12,8 +12,8 @@ and may change at any time.
 ~/.timberslide/config
 
 ```
-host = gw.timberslide.com:80
-token = <yourtokenhere>
+host = "gw.timberslide.com:443"
+token = "<yourtokenhere>"
 ```
 
 Contact info@timberslide.com for a token.
