@@ -1,11 +1,15 @@
 # ts
 
-`ts` is the command line client for Timberslide. This client is underdevelopment
+`ts` is the command line client for Timberslide. This client is under development
 and may change at any time.
 
-## Build
+## Build Options
 
-[Download a binary](https://github.com/timberslide/ts/releases) or install from command line `go install` (Requires golang to be installed). Tested under golang 1.7.
+* [Download a binary](https://github.com/timberslide/ts/releases) 
+* Use the Go package manager: `go get github.com/timberslide/ts`
+* Build from source with `go install` (Requires Go to be installed). 
+
+Tested under Go 1.7.
 
 ## Configuration
 
