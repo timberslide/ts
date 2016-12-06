@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
+	"unicode"
 
 	"github.com/timberslide/gotimberslide"
 )
@@ -59,7 +61,7 @@ func SendStdin(client ts.Client, topic string) error {
 // Get displays all events to stdout
 func Get(client ts.Client, topic string, position int64) error {
 	for event := range client.Iter(topic, position) {
-		fmt.Println(event.Message)
+		fmt.Println(strings.TrimRightFunc(event.Message, unicode.IsSpace))
 	}
 	return nil
 }
